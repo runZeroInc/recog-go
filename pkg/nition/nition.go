@@ -33,3 +33,12 @@ func LoadFingerprints() (map[string]recog.FingerprintDB, error) {
 
 	return res, nil
 }
+
+// MustLoadFingerprints loads the built-in fingerprints, panicing otherwise
+func MustLoadFingerprints() map[string]recog.FingerprintDB {
+	fset, err := LoadFingerprints()
+	if err != nil {
+		panic(err)
+	}
+	return fset
+}

@@ -230,6 +230,29 @@ func (fdb *FingerprintDB) VerifyExamples() error {
 	return nil
 }
 
+// MatchFirst finds the first match for a given string
+func (fdb *FingerprintDB) MatchFirst(data string) *FingerprintMatch {
+	for _, f := range fdb.Fingerprints {
+		m := f.Match(data)
+		if m != nil {
+			return m
+		}
+	}
+	return nil
+}
+
+// MatchAll finds all matches for a given string
+func (fdb *FingerprintDB) MatchAll(data string) []*FingerprintMatch {
+	ret := []*FingerprintMatch{}
+	for _, f := range fdb.Fingerprints {
+		m := f.Match(data)
+		if m != nil {
+			ret = append(ret, m)
+		}
+	}
+	return ret
+}
+
 // LoadFingerprintDBFromFile parses a Recog XML file from disk and returns a FingerprintDB
 func LoadFingerprintDBFromFile(fpath string) (FingerprintDB, error) {
 	fdb := FingerprintDB{}
