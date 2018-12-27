@@ -28,7 +28,7 @@ func LoadFingerprints() (map[string]recog.FingerprintDB, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		res[fdb.Matches] = fdb
+		res[name] = fdb
 	}
 
 	return res, nil
