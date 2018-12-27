@@ -36,7 +36,7 @@ func main() {
 
 	// Load each database and verify the fingerprints against their examples
 	for _, file := range files {
-		fdb, err := recog.LoadFingerprintDB(file)
+		fdb, err := recog.LoadFingerprintDBFromFile(file)
 		if err != nil {
 			log.Fatalf("error loading fingerprints from %s: %s", file, err)
 		}

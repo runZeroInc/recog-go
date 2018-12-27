@@ -27,8 +27,8 @@ type FingerprintParam struct {
 // FingerprintExample contains an example match string
 type FingerprintExample struct {
 	Text string `xml:",chardata" json:"text,omitempty"`
-	// Attributes include _encoding (base64) and parsed component versions (service.version, etc)
-	Attributes   []xml.Attr        `xml:",any,attr" json:"attrs,omitempty"`
+	// Values include _encoding (base64) and parsed component versions (service.version, etc)
+	Values       []xml.Attr        `xml:",any,attr" json:"attrs,omitempty"`
 	AttributeMap map[string]string `xml:"-" json:"-"`
 }
 
@@ -76,65 +76,66 @@ func (fp *Fingerprint) Normalize() error {
 	}
 	for _, ex := range fp.Examples {
 		ex.AttributeMap = make(map[string]string)
-		for _, attr := range ex.Attributes {
+		for _, attr := range ex.Values {
 			ex.AttributeMap[attr.Name.Local] = attr.Value
 		}
 	}
 	return nil
 }
 
-// Pattern to substitute attributes in the param values
+// Pattern to substitute Values in the param values
 var varSubPattern = regexp.MustCompile(`\{[a-zA-Z0-9._\-]+\}`)
 
 // Match a fingerprint against a string
 func (fp *Fingerprint) Match(data string) *FingerprintMatch {
+	res := &FingerprintMatch{Matched: false}
 
 	matches := fp.PatternCompiled.FindStringSubmatch(data)
 	if len(matches) == 0 {
-		return nil
+		return res
 	}
 
-	res := &FingerprintMatch{}
-	res.Attributes = make(map[string]string)
+	res.Matched = true
+	res.Values = make(map[string]string)
 
 	// Extract match parameters (first pass)
 	for _, p := range fp.Params {
 		if p.Position == "0" {
-			res.Attributes[p.Name] = p.Value
+			res.Values[p.Name] = p.Value
 			continue
 		}
 		val, err := strconv.Atoi(p.Position)
 		if err != nil {
-			res.Errors = append(res.Errors, fmt.Sprintf("param index %s is invalid: %s", p.Position, err))
+			res.Errors = append(res.Errors, fmt.Errorf("param index %s is invalid: %s", p.Position, err))
 			continue
 		}
 		if val <= 0 {
-			res.Errors = append(res.Errors, fmt.Sprintf("param index %s is invalid", p.Position))
+			res.Errors = append(res.Errors, fmt.Errorf("param index %s is invalid", p.Position))
 			continue
 		}
 		if val > len(matches) {
-			res.Errors = append(res.Errors, fmt.Sprintf("param index %s was not captured (%d elements)", p.Position, len(matches)))
+			res.Errors = append(res.Errors, fmt.Errorf("param index %s was not captured (%d elements)", p.Position, len(matches)))
 			continue
 		}
 
-		res.Attributes[p.Name] = matches[val]
+		res.Values[p.Name] = matches[val]
 	}
 
 	// Substitute variable templates in a second pass
-	for k, v := range res.Attributes {
+	for k, v := range res.Values {
 		if !varSubPattern.MatchString(v) {
 			continue
 		}
 		nv := varSubPattern.ReplaceAllStringFunc(v, func(s string) string {
 			rk := s[1 : len(s)-1]
-			r, ok := res.Attributes[rk]
+			r, ok := res.Values[rk]
 			if !ok {
-				res.Errors = append(res.Errors, fmt.Sprintf("param %s could not be substituted", rk))
+				res.Errors = append(res.Errors, fmt.Errorf("param %s could not be substituted", rk))
 				return s
 			}
 			return r
 		})
-		res.Attributes[k] = nv
+		res.Values[k] = nv
 	}
 
 	return res
@@ -173,13 +174,13 @@ func (fp *Fingerprint) VerifyExamples() error {
 			return fmt.Errorf("failed to match '%s' (%s) with errors: %v", fp.PatternCompiled.String(), string(escapedData), m.Errors)
 		}
 
-		// Verify that the extracted attributes matched
+		// Verify that the extracted Values matched
 		for k, v := range ex.AttributeMap {
 			if k == "_encoding" {
 				continue
 			}
 
-			verify, ok := m.Attributes[k]
+			verify, ok := m.Values[k]
 			if !ok {
 				return fmt.Errorf("'%s' %s is missing attribute %s", fp.Pattern, string(escapedData), k)
 			}
@@ -194,8 +195,9 @@ func (fp *Fingerprint) VerifyExamples() error {
 
 // FingerprintMatch represents a match of a fingerprint to some data
 type FingerprintMatch struct {
-	Attributes map[string]string
-	Errors     []string
+	Matched bool
+	Errors  []error
+	Values  map[string]string
 }
 
 // FingerprintDB represents a fingerprint database
@@ -232,13 +234,14 @@ func (fdb *FingerprintDB) VerifyExamples() error {
 
 // MatchFirst finds the first match for a given string
 func (fdb *FingerprintDB) MatchFirst(data string) *FingerprintMatch {
+	nomatch := &FingerprintMatch{Matched: false}
 	for _, f := range fdb.Fingerprints {
 		m := f.Match(data)
-		if m != nil {
+		if m.Matched {
 			return m
 		}
 	}
-	return nil
+	return nomatch
 }
 
 // MatchAll finds all matches for a given string
@@ -246,7 +249,7 @@ func (fdb *FingerprintDB) MatchAll(data string) []*FingerprintMatch {
 	ret := []*FingerprintMatch{}
 	for _, f := range fdb.Fingerprints {
 		m := f.Match(data)
-		if m != nil {
+		if m.Matched {
 			ret = append(ret, m)
 		}
 	}
