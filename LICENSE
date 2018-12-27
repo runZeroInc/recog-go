@@ -1,0 +1,5 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Source: https://github.com/hdm/recog-go
+Files: *
+Copyright: 2018-2019, HD Moore
+License: BSD-2-clause
