@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"fmt"
-	"os"
+	"io/ioutil"
 	"path/filepath"
 	"regexp"
 	"regexp/syntax"
@@ -230,24 +230,28 @@ func (fdb *FingerprintDB) VerifyExamples() error {
 	return nil
 }
 
-// LoadFingerprintDB parses a Recog XML file from disk and returns a FingerprintDB
-func LoadFingerprintDB(fpath string) (FingerprintDB, error) {
+// LoadFingerprintDBFromFile parses a Recog XML file from disk and returns a FingerprintDB
+func LoadFingerprintDBFromFile(fpath string) (FingerprintDB, error) {
 	fdb := FingerprintDB{}
 
-	xmlFile, err := os.Open(fpath)
-	if err != nil {
-		return fdb, err
-	}
-	defer xmlFile.Close()
-
-	decoder := xml.NewDecoder(xmlFile)
-	err = decoder.Decode(&fdb)
+	xmlData, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return fdb, err
 	}
 
-	// Store the source filename
-	fdb.Name = filepath.Base(fpath)
+	return LoadFingerprintDB(filepath.Base(fpath), xmlData)
+}
+
+// LoadFingerprintDB parses a Recog XML file from a byte array and returns a FingerprintDB
+func LoadFingerprintDB(name string, xmlData []byte) (FingerprintDB, error) {
+	fdb := FingerprintDB{}
+	err := xml.Unmarshal(xmlData, &fdb)
+	if err != nil {
+		return fdb, err
+	}
+
+	// Store the source name
+	fdb.Name = name
 
 	// Normalize the fingerprints
 	err = fdb.Normalize()
