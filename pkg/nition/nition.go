@@ -15,7 +15,7 @@ import (
 func LoadFingerprints() (map[string]recog.FingerprintDB, error) {
 	res := make(map[string]recog.FingerprintDB)
 
-	// set up a new box by giving it a (relative) path to a folder on disk:
+	// set up a new box by giving it a (relative) path to a folder on disk
 	box := packr.NewBox("./recog/xml/")
 
 	for _, name := range box.List() {
