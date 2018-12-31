@@ -122,6 +122,7 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 	}
 
 	// Substitute variable templates in a second pass
+	// TODO: Only for param index 0 entries
 	for k, v := range res.Values {
 		if !varSubPattern.MatchString(v) {
 			continue
