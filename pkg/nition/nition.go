@@ -1,14 +1,14 @@
 package nition
 
 //go:generate git submodule update
-//go:generate go get github.com/gobuffalo/packr/packr
-//go:generate packr
+//go:generate go get github.com/gobuffalo/packr/packr/v2
+//go:generate packr2
 
 import (
 	"fmt"
 	"log"
 
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	recog "github.com/hdm/recog-go"
 )
 
@@ -51,7 +51,7 @@ func LoadFingerprints() (*FingerprintSet, error) {
 	res := NewFingerprintSet()
 
 	// set up a new box by giving it a (relative) path to a folder on disk
-	box := packr.NewBox("./recog/xml/")
+	box := packr.New("recog", "./recog/xml/")
 
 	for _, name := range box.List() {
 		xmlData, err := box.Find(name)

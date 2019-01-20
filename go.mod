@@ -3,7 +3,8 @@ module github.com/hdm/recog-go
 require (
 	github.com/gobuffalo/buffalo-plugins v1.9.3 // indirect
 	github.com/gobuffalo/flect v0.0.0-20181210151238-24a2b68e0316 // indirect
-	github.com/gobuffalo/packr v1.21.9
+	github.com/gobuffalo/packr/v2 v2.0.0-rc.13
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.2 // indirect
 	github.com/spf13/afero v1.2.0 // indirect
 	github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2 // indirect
