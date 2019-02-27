@@ -1,7 +1,7 @@
 package nition
 
 //go:generate git submodule update
-//go:generate go get github.com/gobuffalo/packr/packr/v2
+//go:generate go get github.com/gobuffalo/packr/v2
 //go:generate packr2
 
 import (
