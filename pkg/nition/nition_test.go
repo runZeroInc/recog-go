@@ -81,3 +81,25 @@ func TestPJLv2(t *testing.T) {
 		t.Errorf("Failed to match 'Xerox ColorQube 8570DT' expected product or vendor")
 	}
 }
+
+func TestHTMLTitle(t *testing.T) {
+	fset, err := LoadFingerprints()
+	if err != nil {
+		t.Errorf("LoadFingerprints() failed")
+		return
+	}
+	if len(fset.Databases) == 0 {
+		t.Errorf("LoadFingerprints() returned an empty set")
+		return
+	}
+
+	m := fset.MatchFirst("html_title.xml", "CloudKey")
+	if !m.Matched {
+		t.Errorf("Failed to match 'CloudKey': %#v", m)
+		return
+	}
+
+	if m.Values["hw.product"] != "UniFi Cloud Key" || m.Values["hw.vendor"] != "Ubiquiti" {
+		t.Errorf("Failed to match 'CloudKey' expected product or vendor")
+	}
+}
