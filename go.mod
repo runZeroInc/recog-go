@@ -1,7 +1,7 @@
 module github.com/hdm/recog-go
 
 require (
-	github.com/gobuffalo/packr/v2 v2.0.2
+	github.com/gobuffalo/packr/v2 v2.0.3
 	github.com/gobuffalo/tags v2.0.15+incompatible // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
