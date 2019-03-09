@@ -1,14 +1,14 @@
 package nition
 
 //go:generate git submodule update
-//go:generate go get github.com/gobuffalo/packr/v2
-//go:generate packr2
+//go:generate go run vfsgen-recog/main.go
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"strings"
 
-	"github.com/gobuffalo/packr/v2"
 	recog "github.com/hdm/recog-go"
 )
 
@@ -50,20 +50,39 @@ func (fs *FingerprintSet) MatchAll(name string, data string) []*recog.Fingerprin
 func LoadFingerprints() (*FingerprintSet, error) {
 	res := NewFingerprintSet()
 
-	// set up a new box by giving it a (relative) path to a folder on disk
-	box := packr.New("recog", "./recog/xml/")
+	rootfs, err := Assets.Open("/")
+	if err != nil {
+		return res, err
+	}
+	defer rootfs.Close()
 
-	for _, name := range box.List() {
-		xmlData, err := box.Find(name)
+	files, err := rootfs.Readdir(65535)
+	if err != nil {
+		return res, err
+	}
+
+	for _, f := range files {
+
+		if !strings.Contains(f.Name(), ".xml") {
+			continue
+		}
+
+		fd, err := Assets.Open(f.Name())
+		if err != nil {
+			return res, err
+		}
+
+		xmlData, err := ioutil.ReadAll(fd)
 		if err != nil {
 			log.Fatal(err)
 		}
+		fd.Close()
 
-		fdb, err := recog.LoadFingerprintDB(name, xmlData)
+		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
 		if err != nil {
 			log.Fatal(err)
 		}
-		res.Databases[name] = &fdb
+		res.Databases[f.Name()] = &fdb
 	}
 
 	return res, nil
