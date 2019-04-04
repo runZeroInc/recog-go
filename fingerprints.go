@@ -113,7 +113,7 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 			res.Errors = append(res.Errors, fmt.Errorf("param index %s is invalid", p.Position))
 			continue
 		}
-		if val > len(matches) {
+		if val >= len(matches) {
 			res.Errors = append(res.Errors, fmt.Errorf("param index %s was not captured (%d elements)", p.Position, len(matches)))
 			continue
 		}
