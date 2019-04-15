@@ -6,8 +6,9 @@ package nition
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strings"
+
+	"path/filepath"
 
 	recog "github.com/hdm/recog-go"
 )
@@ -46,7 +47,7 @@ func (fs *FingerprintSet) MatchAll(name string, data string) []*recog.Fingerprin
 	return fdb.MatchAll(data)
 }
 
-// LoadFingerprints parses embedded Recog XML databases, returning a map
+// LoadFingerprints parses embedded Recog XML databases, returning a FingerprintSet
 func LoadFingerprints() (*FingerprintSet, error) {
 	res := NewFingerprintSet()
 
@@ -74,13 +75,49 @@ func LoadFingerprints() (*FingerprintSet, error) {
 
 		xmlData, err := ioutil.ReadAll(fd)
 		if err != nil {
-			log.Fatal(err)
+			fd.Close()
+			return res, err
 		}
 		fd.Close()
 
 		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
 		if err != nil {
-			log.Fatal(err)
+			return res, err
+		}
+
+		// Create an alias for the file name
+		res.Databases[f.Name()] = &fdb
+
+		// Create an alias for the "matches" attribute
+		res.Databases[fdb.Matches] = &fdb
+	}
+
+	return res, nil
+}
+
+// LoadFingerprintsDir parses Recog XML files from a local directory, returning a FingerprintSet
+func LoadFingerprintsDir(dname string) (*FingerprintSet, error) {
+	res := NewFingerprintSet()
+
+	files, err := ioutil.ReadDir(dname)
+	if err != nil {
+		return res, err
+	}
+
+	for _, f := range files {
+
+		if !strings.Contains(f.Name(), ".xml") {
+			continue
+		}
+
+		xmlData, err := ioutil.ReadFile(filepath.Join(dname, f.Name()))
+		if err != nil {
+			return res, err
+		}
+
+		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
+		if err != nil {
+			return res, err
 		}
 
 		// Create an alias for the file name

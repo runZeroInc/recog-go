@@ -14,6 +14,16 @@ func TestLoad(t *testing.T) {
 	}
 }
 
+func TestLoadDir(t *testing.T) {
+	fset, err := LoadFingerprintsDir("./recog/xml")
+	if err != nil {
+		t.Errorf("LoadFingerprintsDir() failed: %s", err)
+	}
+	if len(fset.Databases) == 0 {
+		t.Errorf("LoadFingerprintsDir() returned an empty set")
+	}
+}
+
 func TestExamples(t *testing.T) {
 	fset, err := LoadFingerprints()
 	if err != nil {
