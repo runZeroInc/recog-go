@@ -103,3 +103,24 @@ func TestHTMLTitle(t *testing.T) {
 		t.Errorf("Failed to match 'CloudKey' expected product or vendor")
 	}
 }
+func TestX509Subjects(t *testing.T) {
+	fset, err := LoadFingerprints()
+	if err != nil {
+		t.Errorf("LoadFingerprints() failed")
+		return
+	}
+	if len(fset.Databases) == 0 {
+		t.Errorf("LoadFingerprints() returned an empty set")
+		return
+	}
+
+	m := fset.MatchFirst("x509.subject", "CN=iDRACdefault0023AEF89AD1,OU=iDRAC Group,O=Dell Inc.,L=Round Rock,C=US")
+	if !m.Matched {
+		t.Errorf("Failed to match 'CN=iDRACdefault0023AEF89AD1,OU=iDRAC Group,O=Dell Inc.,L=Round Rock,C=US': %#v", m)
+		return
+	}
+
+	if m.Values["hw.product"] != "iDRAC" || m.Values["hw.vendor"] != "Dell" {
+		t.Errorf("Failed to match 'iDRAC' expected product or vendor")
+	}
+}

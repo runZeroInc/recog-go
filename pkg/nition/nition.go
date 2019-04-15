@@ -82,7 +82,12 @@ func LoadFingerprints() (*FingerprintSet, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		// Create an alias for the file name
 		res.Databases[f.Name()] = &fdb
+
+		// Create an alias for the "matches" attribute
+		res.Databases[fdb.Matches] = &fdb
 	}
 
 	return res, nil
