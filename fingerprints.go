@@ -10,6 +10,8 @@ import (
 	"regexp/syntax"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // FingerprintDescription contains a human-readable description of this fingerprint entry
@@ -209,6 +211,17 @@ type FingerprintDB struct {
 	Preference   string         `xml:"preference,attr" json:"preference,omitempty"`
 	Fingerprints []*Fingerprint `xml:"fingerprint,omitempty" json:"fingerprint,omitempty"`
 	Name         string         `json:"name,omitempty"`
+	Logger       *log.Logger    `json:"-"`
+}
+
+// DebugLog writes an error to the debug log, if enabled
+func (fdb *FingerprintDB) DebugLog(format string, args ...interface{}) {
+	if fdb.Logger == nil {
+		return
+	}
+	fargs := []interface{}{fdb.Name}
+	fargs = append(fargs, args...)
+	fdb.Logger.Printf("[recog] %s "+strings.TrimSpace(format), fargs...)
 }
 
 // Normalize calls the Normalize function on each loaded Fingerprint
@@ -216,6 +229,7 @@ func (fdb *FingerprintDB) Normalize() error {
 	for _, fp := range fdb.Fingerprints {
 		err := fp.Normalize()
 		if err != nil {
+			fdb.DebugLog("failed to normalize %s: %s", fdb.Name, err)
 			return err
 		}
 	}
@@ -227,6 +241,7 @@ func (fdb *FingerprintDB) VerifyExamples() error {
 	for _, fp := range fdb.Fingerprints {
 		err := fp.VerifyExamples()
 		if err != nil {
+			fdb.DebugLog("failed to verify examples for %s: %s", fdb.Name, err)
 			return err
 		}
 	}
@@ -239,9 +254,15 @@ func (fdb *FingerprintDB) MatchFirst(data string) *FingerprintMatch {
 	for _, f := range fdb.Fingerprints {
 		m := f.Match(data)
 		if m.Matched {
+			desc := ""
+			if f.Description != nil {
+				desc = f.Description.Text
+			}
+			fdb.DebugLog("FP-MATCH %#v to %#v (%s)", data, f.Pattern, desc)
 			return m
 		}
 	}
+	fdb.DebugLog("FP-FAIL %#v", data)
 	return nomatch
 }
 
@@ -251,8 +272,16 @@ func (fdb *FingerprintDB) MatchAll(data string) []*FingerprintMatch {
 	for _, f := range fdb.Fingerprints {
 		m := f.Match(data)
 		if m.Matched {
+			desc := ""
+			if f.Description != nil {
+				desc = f.Description.Text
+			}
+			fdb.DebugLog("FP-MATCH %#v to %#v (%s)", data, f.Pattern, desc)
 			ret = append(ret, m)
 		}
+	}
+	if len(ret) == 0 {
+		fdb.DebugLog("FP-FAIL %#v", data)
 	}
 	return ret
 }
@@ -263,9 +292,11 @@ func LoadFingerprintDBFromFile(fpath string) (FingerprintDB, error) {
 
 	xmlData, err := ioutil.ReadFile(fpath)
 	if err != nil {
+		fdb.DebugLog("failed to load fdb from file %s: %s", fpath, err)
 		return fdb, err
 	}
 
+	fdb.DebugLog("loaded from file %s", fpath)
 	return LoadFingerprintDB(filepath.Base(fpath), xmlData)
 }
 
