@@ -11,7 +11,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	recog "github.com/hdm/recog-go"
+	recog "github.com/RumbleDiscovery/recog-go"
 )
 
 // FingerprintSet is a collection of loaded Recog fingerprint databases

@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	recog "github.com/hdm/recog-go"
+	recog "github.com/RumbleDiscovery/recog-go"
 )
 
 func visit(files *[]string) filepath.WalkFunc {
