@@ -6,7 +6,7 @@ package nition
 import (
 	"fmt"
 	"io/ioutil"
-	"path/filepath"
+	"net/http"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -49,9 +49,19 @@ func (fs *FingerprintSet) MatchAll(name string, data string) []*recog.Fingerprin
 	return fdb.MatchAll(data)
 }
 
-// LoadFingerprints parses embedded Recog XML databases, returning a FingerprintSet
+// LoadFingerprints parses the embedded Recog XML databases, returning a FingerprintSet
 func (fs *FingerprintSet) LoadFingerprints() error {
-	rootfs, err := Assets.Open("/")
+	return fs.LoadFingerprintsFromFS(Assets)
+}
+
+// LoadFingerprintsDir parses Recog XML files from a local directory, returning a FingerprintSet
+func (fs *FingerprintSet) LoadFingerprintsDir(dname string) error {
+	return fs.LoadFingerprintsFromFS(http.Dir(dname))
+}
+
+// LoadFingerprintsFromFS parses an embedded Recog XML database, returning a FingerprintSet
+func (fs *FingerprintSet) LoadFingerprintsFromFS(efs http.FileSystem) error {
+	rootfs, err := efs.Open("/")
 	if err != nil {
 		return err
 	}
@@ -68,7 +78,7 @@ func (fs *FingerprintSet) LoadFingerprints() error {
 			continue
 		}
 
-		fd, err := Assets.Open(f.Name())
+		fd, err := efs.Open(f.Name())
 		if err != nil {
 			return err
 		}
@@ -79,41 +89,6 @@ func (fs *FingerprintSet) LoadFingerprints() error {
 			return err
 		}
 		fd.Close()
-
-		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
-		if err != nil {
-			return err
-		}
-
-		fdb.Logger = fs.Logger
-
-		// Create an alias for the file name
-		fs.Databases[f.Name()] = &fdb
-
-		// Create an alias for the "matches" attribute
-		fs.Databases[fdb.Matches] = &fdb
-	}
-
-	return nil
-}
-
-// LoadFingerprintsDir parses Recog XML files from a local directory, returning a FingerprintSet
-func (fs *FingerprintSet) LoadFingerprintsDir(dname string) error {
-	files, err := ioutil.ReadDir(dname)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range files {
-
-		if !strings.Contains(f.Name(), ".xml") {
-			continue
-		}
-
-		xmlData, err := ioutil.ReadFile(filepath.Join(dname, f.Name()))
-		if err != nil {
-			return err
-		}
 
 		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
 		if err != nil {
