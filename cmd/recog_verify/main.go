@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 
 	recog "github.com/RumbleDiscovery/recog-go"
 )
@@ -34,6 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var hasErr error
 	// Load each database and verify the fingerprints against their examples
 	for _, file := range files {
 		fdb, err := recog.LoadFingerprintDBFromFile(file)
@@ -43,7 +45,14 @@ func main() {
 		log.Printf("loaded %d fingerprints from %s", len(fdb.Fingerprints), file)
 		err = fdb.VerifyExamples()
 		if err != nil {
-			log.Fatalf("error verifying examples: %s", err)
+			log.Errorf("error verifying examples in %s: %s", file, err)
+			hasErr = err
 		}
 	}
+
+	if hasErr != nil {
+		os.Exit(1)
+	}
+
+	os.Exit(0)
 }
