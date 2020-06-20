@@ -63,13 +63,13 @@ func (fs *FingerprintSet) LoadFingerprintsDir(dname string) error {
 func (fs *FingerprintSet) LoadFingerprintsFromFS(efs http.FileSystem) error {
 	rootfs, err := efs.Open("/")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open root: %s", err.Error())
 	}
 	defer rootfs.Close()
 
 	files, err := rootfs.Readdir(65535)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read root: %s", err.Error())
 	}
 
 	for _, f := range files {
@@ -80,19 +80,19 @@ func (fs *FingerprintSet) LoadFingerprintsFromFS(efs http.FileSystem) error {
 
 		fd, err := efs.Open(f.Name())
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to open %s: %s", f.Name(), err.Error())
 		}
 
 		xmlData, err := ioutil.ReadAll(fd)
 		if err != nil {
 			fd.Close()
-			return err
+			return fmt.Errorf("failed to read %s: %s", f.Name(), err.Error())
 		}
 		fd.Close()
 
 		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to load %s: %s", f.Name(), err.Error())
 		}
 
 		fdb.Logger = fs.Logger
