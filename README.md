@@ -4,3 +4,7 @@ This is a Go implementation of the [Recog](https://github.com/rapid7/recog/) lib
 
 Recog-Go is open source, please see the [LICENSE](https://raw.githubusercontent.com/hdm/recog-go/master/LICENSE) file for more information.
 
+To build and install:
+
+    go install ./...
+
