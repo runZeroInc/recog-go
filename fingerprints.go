@@ -101,6 +101,11 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 	res.Matched = true
 	res.Values = make(map[string]string)
 
+	// Set the certainty if available
+	if fp.Certainty != "" {
+		res.Values["fp.certainty"] = fp.Certainty
+	}
+
 	// Extract match parameters (first pass)
 	for _, p := range fp.Params {
 		if p.Position == "0" {
@@ -232,6 +237,11 @@ func (fdb *FingerprintDB) Normalize() error {
 		if err != nil {
 			fdb.DebugLog("failed to normalize %s: %s", fdb.Name, err)
 			return err
+		}
+
+		// Default the fingerprint certainty to the database-level preference
+		if fdb.Preference != "" && fp.Certainty == "" {
+			fp.Certainty = fdb.Preference
 		}
 	}
 	return nil
