@@ -41,6 +41,7 @@ type Fingerprint struct {
 	Description     *FingerprintDescription `xml:"description,omitempty" json:"description,omitempty"`
 	Examples        []*FingerprintExample   `xml:"example,omitempty" json:"example,omitempty"`
 	Params          []*FingerprintParam     `xml:"param,omitempty" json:"param,omitempty"`
+	Certainty       string                  `xml:"certainty,attr" json:"certainty,omitempty"`
 	PatternCompiled *regexp.Regexp          `xml:"-" json:"-"`
 }
 
