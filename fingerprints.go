@@ -83,6 +83,11 @@ func (fp *Fingerprint) Normalize() error {
 			ex.AttributeMap[attr.Name.Local] = attr.Value
 		}
 	}
+
+	// Set a default certainty
+	if fp.Certainty == "" {
+		fp.Certainty = "0.85"
+	}
 	return nil
 }
 
@@ -237,11 +242,6 @@ func (fdb *FingerprintDB) Normalize() error {
 		if err != nil {
 			fdb.DebugLog("failed to normalize %s: %s", fdb.Name, err)
 			return err
-		}
-
-		// Default the fingerprint certainty to the database-level preference
-		if fdb.Preference != "" && fp.Certainty == "" {
-			fp.Certainty = fdb.Preference
 		}
 	}
 	return nil
