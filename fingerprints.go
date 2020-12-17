@@ -112,9 +112,11 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 	}
 
 	// Extract match parameters (first pass)
+	paramZeroKeys := make(map[string]bool)
 	for _, p := range fp.Params {
 		if p.Position == "0" {
 			res.Values[p.Name] = p.Value
+			paramZeroKeys[p.Name] = true
 			continue
 		}
 		val, err := strconv.Atoi(p.Position)
@@ -135,8 +137,13 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 	}
 
 	// Substitute variable templates in a second pass
-	// TODO: Only for param index 0 entries
 	for k, v := range res.Values {
+
+		// Skip non-zero parameters since they come from the banner and not the fingerprint
+		if _, ok := paramZeroKeys[k]; !ok {
+			continue
+		}
+
 		if !varSubPattern.MatchString(v) {
 			continue
 		}
