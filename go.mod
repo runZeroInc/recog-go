@@ -8,4 +8,3 @@ require (
 	github.com/shurcooL/vfsgen v0.0.0-20181202132449-6a9ea43bcacd
 	github.com/sirupsen/logrus v1.8.0
 	golang.org/x/sys v0.0.0-20210225134936-a50acf3fe073 // indirect
-)
