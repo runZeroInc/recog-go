@@ -1,6 +1,6 @@
 module github.com/RumbleDiscovery/recog-go
 
-go 1.14
+go 1.16
 
 require (
 	github.com/magefile/mage v1.11.0 // indirect
