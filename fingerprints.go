@@ -179,7 +179,7 @@ func (fp *Fingerprint) VerifyExamples(fpath string) error {
 			if err != nil {
 				return fmt.Errorf("external example file: %s: %s (%s)", fp.PatternCompiled.String(), err, datafilepath)
 			}
-			exampleData = strings.TrimRight(string(str), "\n")
+			exampleData = string(str)
 		}
 
 		encodingType, found := ex.AttributeMap["_encoding"]
