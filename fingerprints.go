@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"regexp/syntax"
@@ -165,11 +166,22 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 var spacePat = regexp.MustCompile(`\s+`)
 
 // VerifyExamples ensures that the built-in examples match correctly
-func (fp *Fingerprint) VerifyExamples() error {
+func (fp *Fingerprint) VerifyExamples(fpath string) error {
 
 	for _, ex := range fp.Examples {
 
 		exampleData := ex.Text
+
+		datafile, found := ex.AttributeMap["_filename"]
+		if found {
+			datafilepath := filepath.Join(fpath, datafile)
+			str, err := os.ReadFile(datafilepath)
+			if err != nil {
+				return fmt.Errorf("external example file: %s: %s (%s)", fp.PatternCompiled.String(), err, datafilepath)
+			}
+			exampleData = strings.TrimRight(string(str), "\n")
+		}
+
 		encodingType, found := ex.AttributeMap["_encoding"]
 		if found {
 			switch encodingType {
@@ -197,7 +209,7 @@ func (fp *Fingerprint) VerifyExamples() error {
 
 		// Verify that the extracted Values matched
 		for k, v := range ex.AttributeMap {
-			if k == "_encoding" {
+			if k == "_encoding" || k == "_filename" {
 				continue
 			}
 
@@ -255,9 +267,10 @@ func (fdb *FingerprintDB) Normalize() error {
 }
 
 // VerifyExamples calls the VerifyExamples function on each loaded Fingerprint
-func (fdb *FingerprintDB) VerifyExamples() error {
+// fpath is the path to search for example data held in files
+func (fdb *FingerprintDB) VerifyExamples(fpath string) error {
 	for _, fp := range fdb.Fingerprints {
-		err := fp.VerifyExamples()
+		err := fp.VerifyExamples(fpath)
 		if err != nil {
 			fdb.DebugLog("failed to verify examples for %s: %s", fdb.Name, err)
 			return err

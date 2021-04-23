@@ -43,7 +43,8 @@ func main() {
 			log.Fatalf("error loading fingerprints from %s: %s", file, err)
 		}
 		log.Printf("loaded %d fingerprints from %s", len(fdb.Fingerprints), file)
-		err = fdb.VerifyExamples()
+		fpath := file[:len(file)-len(filepath.Ext(file))]
+		err = fdb.VerifyExamples(fpath)
 		if err != nil {
 			log.Errorf("error verifying examples in %s: %s", file, err)
 			hasErr = err
