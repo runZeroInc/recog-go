@@ -35,7 +35,7 @@ func TestExamples(t *testing.T) {
 		return
 	}
 	for name, fdb := range fset.Databases {
-		err := fdb.VerifyExamples()
+		err := fdb.VerifyExamples(".")
 		if err != nil {
 			t.Errorf("VerifyExamples() failed for %s: %s", name, err)
 		}
