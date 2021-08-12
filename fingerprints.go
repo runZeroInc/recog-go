@@ -50,7 +50,6 @@ var flagsPattern = regexp.MustCompile("[|,]")
 
 // Normalize processes a fingerprint to make it easier to use
 func (fp *Fingerprint) Normalize() error {
-
 	// Recog uses PCRE so set the Perl compatibility flag here
 	flags := syntax.PerlX
 	flagStrings := flagsPattern.Split(fp.Flags, -1)
@@ -167,7 +166,6 @@ var spacePat = regexp.MustCompile(`\s+`)
 
 // VerifyExamples ensures that the built-in examples match correctly
 func (fp *Fingerprint) VerifyExamples(fpath string) error {
-
 	for _, ex := range fp.Examples {
 
 		exampleData := ex.Text
@@ -199,7 +197,7 @@ func (fp *Fingerprint) VerifyExamples(fpath string) error {
 		escapedData = strings.Replace(escapedData, "\r", "\\r", -1)
 
 		m := fp.Match(exampleData)
-		if m == nil {
+		if m == nil || !m.Matched {
 			return fmt.Errorf("failed to match '%s' (%s)", fp.PatternCompiled.String(), string(escapedData))
 		}
 
