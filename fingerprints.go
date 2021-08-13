@@ -66,6 +66,12 @@ func (fp *Fingerprint) Normalize() error {
 	// Workaround for recog #209 (use of \u0000 in telnet_banners.xml)
 	fp.Pattern = strings.Replace(fp.Pattern, "\\u0000", "\\x00", -1)
 
+	// Using (?m) also implies (?s), set the option
+	// Note: Ruby does not support explicit '(?s)'
+	if strings.HasPrefix(fp.Pattern, "(?m)") {
+		flags |= syntax.MatchNL
+	}
+
 	// Parse the regular expression
 	parsed, err := syntax.Parse(fp.Pattern, flags)
 	if err != nil {
