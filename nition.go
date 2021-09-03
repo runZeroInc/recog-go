@@ -1,6 +1,6 @@
 package recog
 
-//go:generate go run cmd/vfsdata/main.go
+//go:generate go run gen/vfsdata/main.go
 
 import (
 	"fmt"
