@@ -1,3 +1,0 @@
-[submodule "pkg/nition/recog"]
-	path = pkg/nition/recog
-	url = https://github.com/RumbleDiscovery/recog
