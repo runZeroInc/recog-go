@@ -1,7 +1,6 @@
-package nition
+package recog
 
-//go:generate git submodule update
-//go:generate go run vfsgen-recog/main.go
+//go:generate go run cmd/vfsdata/main.go
 
 import (
 	"fmt"
@@ -10,26 +9,24 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
-
-	recog "github.com/RumbleDiscovery/recog-go"
 )
 
 // FingerprintSet is a collection of loaded Recog fingerprint databases
 type FingerprintSet struct {
-	Databases map[string]*recog.FingerprintDB
+	Databases map[string]*FingerprintDB
 	Logger    *log.Logger
 }
 
 // NewFingerprintSet returns an allocated FingerprintSet structure
 func NewFingerprintSet() *FingerprintSet {
 	fs := &FingerprintSet{}
-	fs.Databases = make(map[string]*recog.FingerprintDB)
+	fs.Databases = make(map[string]*FingerprintDB)
 	return fs
 }
 
 // MatchFirst matches data to a given fingerprint database
-func (fs *FingerprintSet) MatchFirst(name string, data string) *recog.FingerprintMatch {
-	nomatch := &recog.FingerprintMatch{Matched: false}
+func (fs *FingerprintSet) MatchFirst(name string, data string) *FingerprintMatch {
+	nomatch := &FingerprintMatch{Matched: false}
 	fdb, ok := fs.Databases[name]
 	if !ok {
 		nomatch.Errors = append(nomatch.Errors, fmt.Errorf("database %s is missing", name))
@@ -39,19 +36,19 @@ func (fs *FingerprintSet) MatchFirst(name string, data string) *recog.Fingerprin
 }
 
 // MatchAll matches data to a given fingerprint database
-func (fs *FingerprintSet) MatchAll(name string, data string) []*recog.FingerprintMatch {
-	nomatch := &recog.FingerprintMatch{Matched: false}
+func (fs *FingerprintSet) MatchAll(name string, data string) []*FingerprintMatch {
+	nomatch := &FingerprintMatch{Matched: false}
 	fdb, ok := fs.Databases[name]
 	if !ok {
 		nomatch.Errors = append(nomatch.Errors, fmt.Errorf("database %s is missing", name))
-		return []*recog.FingerprintMatch{nomatch}
+		return []*FingerprintMatch{nomatch}
 	}
 	return fdb.MatchAll(data)
 }
 
 // LoadFingerprints parses the embedded Recog XML databases, returning a FingerprintSet
 func (fs *FingerprintSet) LoadFingerprints() error {
-	return fs.LoadFingerprintsFromFS(Assets)
+	return fs.LoadFingerprintsFromFS(RecogXML)
 }
 
 // LoadFingerprintsDir parses Recog XML files from a local directory, returning a FingerprintSet
@@ -90,7 +87,7 @@ func (fs *FingerprintSet) LoadFingerprintsFromFS(efs http.FileSystem) error {
 		}
 		fd.Close()
 
-		fdb, err := recog.LoadFingerprintDB(f.Name(), xmlData)
+		fdb, err := LoadFingerprintDB(f.Name(), xmlData)
 		if err != nil {
 			return fmt.Errorf("failed to load %s: %s", f.Name(), err.Error())
 		}

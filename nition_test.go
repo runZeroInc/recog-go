@@ -1,4 +1,4 @@
-package nition
+package recog
 
 import (
 	"testing"

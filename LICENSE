@@ -1,5 +1,5 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Source: https://github.com/RumbleDiscovery/recog-go
 Files: *
-Copyright: 2018-2020, Critical Research Corporation
+Copyright: 2018-2021, Rumble, Inc
 License: BSD-2-clause
