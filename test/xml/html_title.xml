@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<fingerprints matches="html_title" protocol="http" database_type="service" preference="0.90">
+  <!-- HTML Title elements found in HTTP response bodies are matched against these patterns to fingerprint HTTP servers. -->
+
+  <fingerprint pattern="^MoinMoinWiki">
+    <description>Moinmoin wiki</description>
+    <example>MoinMoinWiki - MoinMoin</example>
+    <param pos="0" name="service.vendor" value="MoinMoin"/>
+    <param pos="0" name="service.product" value="MoinMoin"/>
+    <param pos="0" name="service.cpe23" value="cpe:/a:moinmo:moinmoin:-"/>
+  </fingerprint>
+
+</fingerprints>

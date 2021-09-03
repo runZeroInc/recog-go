@@ -1,6 +1,7 @@
 package recog
 
 import (
+	"os"
 	"testing"
 )
 
@@ -15,7 +16,11 @@ func TestLoad(t *testing.T) {
 }
 
 func TestLoadDir(t *testing.T) {
-	fset, err := LoadFingerprintsDir("./recog/xml")
+	xmlPath := "./test/xml"
+	if v := os.Getenv("RECOG_XML"); v != "" {
+		xmlPath = v
+	}
+	fset, err := LoadFingerprintsDir(xmlPath)
 	if err != nil {
 		t.Errorf("LoadFingerprintsDir() failed: %s", err)
 	}
