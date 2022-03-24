@@ -160,6 +160,11 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 				res.Errors = append(res.Errors, fmt.Errorf("param %s could not be substituted", rk))
 				return s
 			}
+			if strings.HasPrefix(v, "cpe:") && rk == "service.version" && r == "" {
+				// Ensure we follow the existing service.cpe23 format the recog project uses
+				// when 'service.version' isn't set/provided
+				return "-"
+			}
 			return r
 		})
 		res.Values[k] = nv
