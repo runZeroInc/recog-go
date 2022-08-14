@@ -4,7 +4,7 @@ This is a Go implementation of the [Recog](https://github.com/rapid7/recog/) lib
 
 This package requires a checkout of the recog repository in order to build.
 
-Recog-Go is open source, please see the [LICENSE](https://raw.githubusercontent.com/hdm/recog-go/master/LICENSE) file for more information.
+Recog-Go is open source, please see the [LICENSE](https://raw.githubusercontent.com/runZeroInc/recog-go/master/LICENSE) file for more information.
 
 To build and install:
 ```

@@ -1,4 +1,4 @@
-module github.com/RumbleDiscovery/recog-go
+module github.com/runZeroInc/recog-go
 
 go 1.16
 
