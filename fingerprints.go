@@ -24,7 +24,7 @@ type FingerprintDescription struct {
 type FingerprintParam struct {
 	Position string `xml:"pos,attr"  json:"pos,omitempty"`
 	Name     string `xml:"name,attr"  json:"name,omitempty"`
-	Value    string `xml:"value,attr"  json:"value,omitempty"`
+	Value    string `xml:"value,attr,omitempty"  json:"value,omitempty"`
 }
 
 // FingerprintExample contains an example match string
@@ -37,12 +37,13 @@ type FingerprintExample struct {
 
 // Fingerprint represents a unique Recog fingerprint definition
 type Fingerprint struct {
+	XMLName         xml.Name                `xml:"fingerprint"`
 	Pattern         string                  `xml:"pattern,attr" json:"pattern,omitempty"`
-	Flags           string                  `xml:"flags,attr"  json:"flags,omitempty"`
+	Flags           string                  `xml:"flags,attr,omitempty"  json:"flags,omitempty"`
 	Description     *FingerprintDescription `xml:"description,omitempty" json:"description,omitempty"`
 	Examples        []*FingerprintExample   `xml:"example,omitempty" json:"example,omitempty"`
 	Params          []*FingerprintParam     `xml:"param,omitempty" json:"param,omitempty"`
-	Certainty       string                  `xml:"certainty,attr" json:"certainty,omitempty"`
+	Certainty       string                  `xml:"certainty,attr,omitempty" json:"certainty,omitempty"`
 	PatternCompiled *regexp.Regexp          `xml:"-" json:"-"`
 }
 
@@ -117,6 +118,10 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 		res.Values["fp.certainty"] = fp.Certainty
 	}
 
+	if fp.Description != nil && fp.Description.Text != "" {
+		res.Values["matched"] = fp.Description.Text
+	}
+
 	// Extract match parameters (first pass)
 	paramZeroKeys := make(map[string]bool)
 	for _, p := range fp.Params {
@@ -167,7 +172,7 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 			}
 			return r
 		})
-		res.Values[k] = nv
+		res.Values[k] = strings.TrimSpace(nv)
 	}
 
 	return res
@@ -209,11 +214,11 @@ func (fp *Fingerprint) VerifyExamples(fpath string) error {
 
 		m := fp.Match(exampleData)
 		if m == nil || !m.Matched {
-			return fmt.Errorf("failed to match '%s' (%s)", fp.PatternCompiled.String(), string(escapedData))
+			return fmt.Errorf("failed to match '%s' (%s)", fp.PatternCompiled.String(), escapedData)
 		}
 
 		if len(m.Errors) > 0 {
-			return fmt.Errorf("failed to match '%s' (%s) with errors: %v", fp.PatternCompiled.String(), string(escapedData), m.Errors)
+			return fmt.Errorf("failed to match '%s' (%s) with errors: %v", fp.PatternCompiled.String(), escapedData, m.Errors)
 		}
 
 		// Verify that the extracted Values matched
@@ -224,10 +229,10 @@ func (fp *Fingerprint) VerifyExamples(fpath string) error {
 
 			verify, ok := m.Values[k]
 			if !ok {
-				return fmt.Errorf("'%s' %s is missing attribute %s", fp.Pattern, string(escapedData), k)
+				return fmt.Errorf("'%s' %s is missing attribute %s", fp.Pattern, escapedData, k)
 			}
 			if verify != v {
-				return fmt.Errorf("'%s' (%s) has mismatched attribute value for %s: %s != %s", fp.Pattern, string(escapedData), k, v, verify)
+				return fmt.Errorf("'%s' (%s) has mismatched attribute value for %s: %s != %s", fp.Pattern, escapedData, k, v, verify)
 			}
 		}
 	}
@@ -244,17 +249,18 @@ type FingerprintMatch struct {
 
 // FingerprintDB represents a fingerprint database
 type FingerprintDB struct {
+	XMLName      xml.Name       `xml:"fingerprints"`
 	Matches      string         `xml:"matches,attr" json:"matches,omitempty"`
-	Protocol     string         `xml:"protocol,attr" json:"protocol,omitempty"`
+	Protocol     string         `xml:"protocol,attr,omitempty" json:"protocol,omitempty"`
 	DatabaseType string         `xml:"database_type,attr" json:"database_type,omitempty"`
 	Preference   string         `xml:"preference,attr" json:"preference,omitempty"`
 	Fingerprints []*Fingerprint `xml:"fingerprint,omitempty" json:"fingerprint,omitempty"`
-	Name         string         `json:"name,omitempty"`
+	Name         string         `xml:"-" json:"name,omitempty"`
 	Logger       *log.Logger    `json:"-"`
 }
 
-// DebugLog writes an error to the debug log, if enabled
-func (fdb *FingerprintDB) DebugLog(format string, args ...interface{}) {
+// DebugLogf writes an error to the debug log, if enabled
+func (fdb *FingerprintDB) DebugLogf(format string, args ...interface{}) {
 	if fdb.Logger == nil {
 		return
 	}
@@ -268,7 +274,7 @@ func (fdb *FingerprintDB) Normalize() error {
 	for _, fp := range fdb.Fingerprints {
 		err := fp.Normalize()
 		if err != nil {
-			fdb.DebugLog("failed to normalize %s: %s", fdb.Name, err)
+			fdb.DebugLogf("failed to normalize %s: %s", fdb.Name, err)
 			return err
 		}
 	}
@@ -281,7 +287,7 @@ func (fdb *FingerprintDB) VerifyExamples(fpath string) error {
 	for _, fp := range fdb.Fingerprints {
 		err := fp.VerifyExamples(fpath)
 		if err != nil {
-			fdb.DebugLog("failed to verify examples for %s: %s", fdb.Name, err)
+			fdb.DebugLogf("failed to verify examples for %s: %s", fdb.Name, err)
 			return err
 		}
 	}
@@ -298,11 +304,11 @@ func (fdb *FingerprintDB) MatchFirst(data string) *FingerprintMatch {
 			if f.Description != nil {
 				desc = f.Description.Text
 			}
-			fdb.DebugLog("FP-MATCH %#v to %#v (%s)", data, f.Pattern, desc)
+			fdb.DebugLogf("FP-MATCH %#v to %#v (%s)", data, f.Pattern, desc)
 			return m
 		}
 	}
-	fdb.DebugLog("FP-FAIL %#v", data)
+	fdb.DebugLogf("FP-FAIL %#v", data)
 	return nomatch
 }
 
@@ -316,12 +322,12 @@ func (fdb *FingerprintDB) MatchAll(data string) []*FingerprintMatch {
 			if f.Description != nil {
 				desc = f.Description.Text
 			}
-			fdb.DebugLog("FP-MATCH %#v to %#v (%s)", data, f.Pattern, desc)
+			fdb.DebugLogf("FP-MATCH %#v to %#v (%s)", data, f.Pattern, desc)
 			ret = append(ret, m)
 		}
 	}
 	if len(ret) == 0 {
-		fdb.DebugLog("FP-FAIL %#v", data)
+		fdb.DebugLogf("FP-FAIL %#v", data)
 	}
 	return ret
 }
@@ -332,11 +338,11 @@ func LoadFingerprintDBFromFile(fpath string) (FingerprintDB, error) {
 
 	xmlData, err := ioutil.ReadFile(fpath)
 	if err != nil {
-		fdb.DebugLog("failed to load fdb from file %s: %s", fpath, err)
+		fdb.DebugLogf("failed to load fdb from file %s: %s", fpath, err)
 		return fdb, err
 	}
 
-	fdb.DebugLog("loaded from file %s", fpath)
+	fdb.DebugLogf("loaded from file %s", fpath)
 	return LoadFingerprintDB(filepath.Base(fpath), xmlData)
 }
 

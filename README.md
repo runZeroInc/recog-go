@@ -6,6 +6,8 @@ This package requires a checkout of the recog repository in order to build.
 
 Recog-Go is open source, please see the [LICENSE](https://raw.githubusercontent.com/runZeroInc/recog-go/master/LICENSE) file for more information.
 
+The [recog_match](cmd/recog_match/main.go) utility contains a working example
+
 To build and install:
 ```
 $ git clone https://github.com/rapid7/recog.git /path/to/recog
