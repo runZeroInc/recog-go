@@ -175,6 +175,13 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 		res.Values[k] = strings.TrimSpace(nv)
 	}
 
+	// Remove temporary params (_tmp.00x) from results
+	for k := range res.Values {
+		if strings.HasPrefix(k, "_tmp.") {
+			delete(res.Values, k)
+		}
+	}
+
 	return res
 }
 

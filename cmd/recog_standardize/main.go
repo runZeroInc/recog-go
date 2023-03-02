@@ -207,8 +207,16 @@ func waitForParams(wg *sync.WaitGroup) chan *recog.FingerprintParam {
 	wg.Add(1)
 	go func() {
 		for param := range paramCh {
+
+			// Don't track temporary attributes
+			if strings.HasPrefix(param.Name, "_tmp.") {
+				continue
+			}
+
 			addToSet(curIdentifiers["fields"], param.Name)
-			if param.Position != "0" || strings.TrimSpace(param.Value) == "" || strings.Contains(param.Value, "{") {
+			if param.Position != "0" ||
+				strings.TrimSpace(param.Value) == "" ||
+				strings.Contains(param.Value, "{") {
 				continue
 			}
 			switch param.Name {
