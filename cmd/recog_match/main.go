@@ -28,13 +28,11 @@ func visit(files *[]string) filepath.WalkFunc {
 }
 
 func fingerprint(fingerprints []recog.FingerprintDB, text string) {
-	for _, term := range strings.Fields(text) {
-		for _, fdb := range fingerprints {
-			match := fdb.MatchFirst(term)
-			if match.Matched {
-				j, _ := json.Marshal(match.Values)
-				fmt.Printf("%s\n", j)
-			}
+	for _, fdb := range fingerprints {
+		match := fdb.MatchFirst(text)
+		if match.Matched {
+			j, _ := json.Marshal(match.Values)
+			fmt.Printf("%s\n", j)
 		}
 	}
 }
