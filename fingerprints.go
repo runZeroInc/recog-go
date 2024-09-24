@@ -45,6 +45,7 @@ type Fingerprint struct {
 	Params          []*FingerprintParam     `xml:"param,omitempty" json:"param,omitempty"`
 	Certainty       string                  `xml:"certainty,attr,omitempty" json:"certainty,omitempty"`
 	PatternCompiled *regexp.Regexp          `xml:"-" json:"-"`
+	DB              *FingerprintDB          `xml:"-" json:"-"`
 }
 
 var flagsPattern = regexp.MustCompile("[|,]")
@@ -110,6 +111,7 @@ func (fp *Fingerprint) Match(data string) *FingerprintMatch {
 		return res
 	}
 
+	res.Fingerprint = fp
 	res.Matched = true
 	res.Values = make(map[string]string)
 
@@ -249,9 +251,10 @@ func (fp *Fingerprint) VerifyExamples(fpath string) error {
 
 // FingerprintMatch represents a match of a fingerprint to some data
 type FingerprintMatch struct {
-	Matched bool
-	Errors  []error
-	Values  map[string]string
+	Matched     bool
+	Errors      []error
+	Values      map[string]string
+	Fingerprint *Fingerprint
 }
 
 // FingerprintDB represents a fingerprint database
@@ -284,6 +287,9 @@ func (fdb *FingerprintDB) Normalize() error {
 			fdb.DebugLogf("failed to normalize %s: %s", fdb.Name, err)
 			return err
 		}
+
+		// also set the db reference on each fingerprint
+		fp.DB = fdb
 	}
 	return nil
 }
